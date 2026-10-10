@@ -1,0 +1,26 @@
+
+{
+  "id": "./",
+  "name": "BikeCare",
+  "short_name": "BikeCare",
+  "description": "Поддръжка и история на моя Drag C1",
+  "lang": "bg",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0b0e0c",
+  "theme_color": "#101310",
+  "categories": [
+    "lifestyle",
+    "utilities"
+  ],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

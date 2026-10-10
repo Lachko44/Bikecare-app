@@ -1,0 +1,498 @@
+
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101310">
+  <meta name="description" content="BikeCare — поддръжка на твоя велосипед">
+  <title>BikeCare</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a href="#" class="brand" data-goto="dashboard">
+        <span class="brand-icon">B</span>
+        <span>Bike<span class="green">Care</span></span>
+      </a>
+      <span class="header-label">МОЯТ ВЕЛОСИПЕД</span>
+    </header>
+
+    <nav class="navigation">
+      <button class="nav-link active" data-page="dashboard">Начало</button>
+      <button class="nav-link" data-page="bike">Моето колело</button>
+      <button class="nav-link" data-page="tasks">Поддръжка</button>
+      <button class="nav-link" data-page="rides">Карания</button>
+      <button class="nav-link" data-page="checklist">Проверка</button>
+      <button class="nav-link" data-page="settings">Настройки</button>
+    </nav>
+
+    <main>
+      <!-- НАЧАЛО -->
+      <section class="page active" id="page-dashboard">
+        <div class="welcome">
+          <div>
+            <p class="eyebrow">BIKECARE / ПРЕГЛЕД</p>
+            <h1>Готов ли си за каране?</h1>
+            <p class="welcome-text" id="welcomeText">
+              Провери велосипеда си и се приготви за следващото приключение.
+            </p>
+          </div>
+          <div class="ready-indicator">
+            <span class="ready-dot"></span>
+            <span id="dashStatus">Готов</span>
+          </div>
+        </div>
+
+        <button class="bike-hero" data-goto="bike">
+          <div class="bike-hero-copy">
+            <span class="eyebrow">МОЯТ ВЕЛОСИПЕД</span>
+            <h2>Drag C1</h2>
+            <p id="dashboardWheelSize">Размер на гумите: 26″ — уточни ширината</p>
+            <span class="text-link">Виж частите и оборудването →</span>
+          </div>
+          <div class="bike-symbol" aria-hidden="true">🚵</div>
+        </button>
+
+        <div class="stats-grid">
+          <article class="stat-card">
+            <span class="stat-label">Карания</span>
+            <strong id="rideCount">0</strong>
+            <span class="stat-note">Записани карания</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Предстоящи задачи</span>
+            <strong id="pendingCount">0</strong>
+            <span class="stat-note">За проверка или поддръжка</span>
+          </article>
+          <article class="stat-card">
+            <span class="stat-label">Завършени задачи</span>
+            <strong id="doneCount">0</strong>
+            <span class="stat-note">Извършена поддръжка</span>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">НЕ ЗАБРАВЯЙ</p>
+            <h2>Предстояща поддръжка</h2>
+          </div>
+          <button class="button button-ghost" data-goto="tasks">Всички задачи →</button>
+        </div>
+        <div id="dashboardTasks" class="item-list">
+          <div class="empty-state">Все още няма добавени задачи.</div>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">ПОСЛЕДНИ ЗАПИСИ</p>
+            <h2>Последни карания</h2>
+          </div>
+          <button class="button button-ghost" data-goto="rides">Всички карания →</button>
+        </div>
+        <div id="dashboardRides" class="item-list">
+          <div class="empty-state">Все още няма записани карания.</div>
+        </div>
+      </section>
+
+      <!-- МОЕТО КОЛЕЛО -->
+      <section class="page" id="page-bike">
+        <div class="page-heading">
+          <p class="eyebrow">МОЯТА МАШИНА</p>
+          <h1>Моето колело</h1>
+          <p>Запиши частите и оборудването на своя Drag C1.</p>
+        </div>
+
+        <div class="bike-profile">
+          <div class="bike-profile-icon">🚵</div>
+          <div>
+            <h2>Drag C1</h2>
+            <p>Планински велосипед</p>
+            <span class="bike-tag">26-инчови капли</span>
+          </div>
+        </div>
+
+        <form id="bikeForm" class="form-card">
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">ТЕХНИЧЕСКИ ДАННИ</p>
+              <h2>Основна информация</h2>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Марка и модел</span>
+              <input name="model" value="Drag C1" placeholder="Напр. Drag C1">
+            </label>
+
+            <label class="field">
+              <span>Размер на каплите (инчове)</span>
+              <input name="wheelSize" value="26" placeholder="Напр. 26">
+            </label>
+
+            <label class="field">
+              <span>Размер на гумите</span>
+              <input name="tireSize" placeholder="Напр. 26 × 2.10">
+            </label>
+
+            <label class="field">
+              <span>Марка и модел на гумите</span>
+              <input name="tireModel" placeholder="Въведи информация">
+            </label>
+
+            <label class="field">
+              <span>Рамка</span>
+              <input name="frame" value="M" placeholder="Напр. M">
+            </label>
+
+            <label class="field">
+              <span>Тип велосипед</span>
+              <input name="bikeType" value="MTB — планински" placeholder="Тип велосипед">
+            </label>
+          </div>
+
+          <div class="section-heading compact-heading">
+            <div>
+              <p class="eyebrow">КОМПОНЕНТИ</p>
+              <h2>Части и оборудване</h2>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Предна вилка</span>
+              <input name="fork" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Предна спирачка</span>
+              <input name="frontBrake" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Задна спирачка</span>
+              <input name="rearBrake" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Спирачни ротори</span>
+              <input name="rotors" placeholder="Размер и модел">
+            </label>
+
+            <label class="field">
+              <span>Скоростна система</span>
+              <input name="drivetrain" placeholder="Марка и брой скорости">
+            </label>
+
+            <label class="field">
+              <span>Дерайльор</span>
+              <input name="derailleur" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Команди за скорости</span>
+              <input name="shifters" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Касета</span>
+              <input name="cassette" placeholder="Напр. 8 скорости">
+            </label>
+
+            <label class="field">
+              <span>Верига</span>
+              <input name="chain" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Курбели и плочи</span>
+              <input name="crankset" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Капли</span>
+              <input name="wheels" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Главини</span>
+              <input name="hubs" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Педали</span>
+              <input name="pedals" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Седалка</span>
+              <input name="saddle" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Кормило и лапа</span>
+              <input name="cockpit" placeholder="Марка и модел">
+            </label>
+
+            <label class="field">
+              <span>Други части</span>
+              <input name="otherParts" placeholder="Други компоненти">
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Допълнителни бележки</span>
+            <textarea name="bikeNotes" rows="4" placeholder="Запиши друга информация за велосипеда..."></textarea>
+          </label>
+
+          <button type="submit" class="button button-primary">Запази информацията</button>
+        </form>
+      </section>
+
+      <!-- ПОДДРЪЖКА -->
+      <section class="page" id="page-tasks">
+        <div class="page-heading">
+          <p class="eyebrow">ГРИЖА ЗА ВЕЛОСИПЕДА</p>
+          <h1>Поддръжка</h1>
+          <p>Добавяй отделни задачи и отбелязвай кога си ги изпълнил.</p>
+        </div>
+
+        <div class="toolbar">
+          <input id="taskSearch" type="search" placeholder="Търси задача...">
+          <select id="taskFilter">
+            <option value="all">Всички задачи</option>
+            <option value="pending">Предстоящи</option>
+            <option value="done">Завършени</option>
+          </select>
+        </div>
+
+        <div class="section-heading">
+          <h2>Моите задачи</h2>
+          <button class="button button-primary" id="addTask" type="button">+ Нова задача</button>
+        </div>
+
+        <form id="taskForm" class="form-card hidden">
+          <h2 id="taskEditorTitle">Нова задача</h2>
+          <input type="hidden" name="taskId">
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Име на задачата *</span>
+              <input name="title" required placeholder="Напр. Почистване на веригата">
+            </label>
+
+            <label class="field">
+              <span>Категория</span>
+              <select name="category">
+                <option value="Верига и трансмисия">Верига и трансмисия</option>
+                <option value="Спирачки">Спирачки</option>
+                <option value="Гуми и капли">Гуми и капли</option>
+                <option value="Вилка и окачване">Вилка и окачване</option>
+                <option value="Почистване">Почистване</option>
+                <option value="Обща проверка">Обща проверка</option>
+                <option value="Друго">Друго</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Вид дейност</span>
+              <select name="operation">
+                <option value="Почистване на веригата">Почистване на веригата</option>
+                <option value="Смазване на веригата">Смазване на веригата</option>
+                <option value="Почистване и смазване">Почистване и смазване</option>
+                <option value="Проверка">Проверка</option>
+                <option value="Регулиране">Регулиране</option>
+                <option value="Подмяна">Подмяна</option>
+                <option value="Почистване на велосипеда">Почистване на велосипеда</option>
+                <option value="Друго">Друго</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Срок</span>
+              <input type="date" name="dueDate">
+            </label>
+
+            <label class="field">
+              <span>Приоритет</span>
+              <select name="priority">
+                <option value="normal">Нормален</option>
+                <option value="high">Висок</option>
+                <option value="low">Нисък</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Километри (по желание)</span>
+              <input type="number" name="dueKm" min="0" placeholder="Не е задължително">
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Бележки</span>
+            <textarea name="notes" rows="3" placeholder="Допълнителни подробности..."></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="button button-primary">Запази задачата</button>
+            <button type="button" class="button button-ghost" id="cancelTask">Отказ</button>
+          </div>
+        </form>
+
+        <div id="tasksList" class="item-list">
+          <div class="empty-state">Все още няма добавени задачи.</div>
+        </div>
+      </section>
+
+      <!-- КАРАНИЯ -->
+      <section class="page" id="page-rides">
+        <div class="page-heading">
+          <p class="eyebrow">НАВЪН С КОЛЕЛОТО</p>
+          <h1>Карания</h1>
+          <p>Записвай каранията си. Километрите са по желание.</p>
+        </div>
+
+        <div class="section-heading">
+          <h2>История на каранията</h2>
+          <button class="button button-primary" id="addRide" type="button">+ Ново каране</button>
+        </div>
+
+        <form id="rideForm" class="form-card hidden">
+          <h2 id="rideEditorTitle">Ново каране</h2>
+          <input type="hidden" name="rideId">
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Дата *</span>
+              <input type="date" name="date" required>
+            </label>
+
+            <label class="field">
+              <span>Продължителност</span>
+              <input name="duration" placeholder="Напр. 1 ч. и 30 мин.">
+            </label>
+
+            <label class="field">
+              <span>Терен</span>
+              <select name="terrain">
+                <option value="Гора">Гора</option>
+                <option value="Пътеки">Пътеки</option>
+                <option value="Пъмп трак">Пъмп трак</option>
+                <option value="Планина">Планина</option>
+                <option value="Асфалт">Асфалт</option>
+                <option value="Смесен">Смесен</option>
+                <option value="Друг">Друг</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Условия</span>
+              <select name="conditions">
+                <option value="Сухо">Сухо</option>
+                <option value="Кал">Кал</option>
+                <option value="Дъжд">Дъжд</option>
+                <option value="Прах">Прах</option>
+                <option value="Мокро">Мокро</option>
+                <option value="Смесени">Смесени</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Разстояние (км, по желание)</span>
+              <input type="number" name="distance" min="0" step="0.1" placeholder="Не е задължително">
+            </label>
+          </div>
+
+          <label class="field">
+            <span>Бележки</span>
+            <textarea name="notes" rows="3" placeholder="Как мина карането? Какъв беше теренът?"></textarea>
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="button button-primary">Запази карането</button>
+            <button type="button" class="button button-ghost" id="cancelRide">Отказ</button>
+          </div>
+        </form>
+
+        <div id="ridesList" class="item-list">
+          <div class="empty-state">Все още няма записани карания.</div>
+        </div>
+      </section>
+
+      <!-- ПРОВЕРКА ПРЕДИ КАРАНЕ -->
+      <section class="page" id="page-checklist">
+        <div class="page-heading">
+          <p class="eyebrow">ПРЕДИ ДА ТРЪГНЕШ</p>
+          <h1>Проверка на велосипеда</h1>
+          <p>Провери основните части преди всяко каране.</p>
+        </div>
+
+        <div class="progress-card">
+          <div class="progress-heading">
+            <h2>Готовност</h2>
+            <strong id="progressText">0%</strong>
+          </div>
+          <div class="progress-track">
+            <div id="progressBar" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <div id="checklistItems" class="checklist">
+          <label class="check-item"><input type="checkbox" data-check="tires"> <span>Гумите са напомпани и без видими повреди</span></label>
+          <label class="check-item"><input type="checkbox" data-check="brakes"> <span>Предната и задната спирачка работят</span></label>
+          <label class="check-item"><input type="checkbox" data-check="chain"> <span>Веригата е чиста и смазана при нужда</span></label>
+          <label class="check-item"><input type="checkbox" data-check="wheels"> <span>Каплите са закрепени добре</span></label>
+          <label class="check-item"><input type="checkbox" data-check="steering"> <span>Кормилото и лапата са стабилни</span></label>
+          <label class="check-item"><input type="checkbox" data-check="pedals"> <span>Педалите и курбелите са стабилни</span></label>
+          <label class="check-item"><input type="checkbox" data-check="helmet"> <span>Каската е готова и правилно поставена</span></label>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button-primary" id="finishChecklist" type="button">Завърших проверката</button>
+          <button class="button button-ghost" id="resetChecklist" type="button">Нулирай проверката</button>
+        </div>
+      </section>
+
+      <!-- НАСТРОЙКИ -->
+      <section class="page" id="page-settings">
+        <div class="page-heading">
+          <p class="eyebrow">BIKECARE</p>
+          <h1>Настройки</h1>
+          <p>Управлявай данните, записани на това устройство.</p>
+        </div>
+
+        <div class="settings-card">
+          <h2>Архив на данните</h2>
+          <p>Запази копие на задачите, каранията и информацията за колелото си.</p>
+          <div class="form-actions">
+            <button class="button button-primary" id="exportData" type="button">Изтегли архив</button>
+            <label class="button button-ghost file-button">
+              Импортирай архив
+              <input id="importData" type="file" accept="application/json,.json">
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-card danger-card">
+          <h2>Изтриване на данните</h2>
+          <p>Това ще изтрие записите в BikeCare от този браузър.</p>
+          <button class="button button-danger" id="clearData" type="button">Изтрий всички данни</button>
+        </div>
+
+        <p class="privacy-note">BikeCare съхранява данните локално в браузъра. Не е необходим профил или Google вход.</p>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>BikeCare</span>
+      <span>Поддържай колелото. Наслаждавай се на пътя.</span>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="script.js"></script>
+</body>
+</html>
