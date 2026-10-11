@@ -1,23 +1,17 @@
 
 {
-  "id": "./",
-  "name": "BikeCare",
+  "name": "BikeCare — грижа за велосипеда",
   "short_name": "BikeCare",
-  "description": "Поддръжка и история на моя Drag C1",
+  "description": "Дневник за велосипед, компоненти, поддръжка и карания.",
   "lang": "bg",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "any",
-  "background_color": "#0b0e0c",
-  "theme_color": "#101310",
-  "categories": [
-    "lifestyle",
-    "utilities"
-  ],
+  "background_color": "#0d100d",
+  "theme_color": "#101410",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
