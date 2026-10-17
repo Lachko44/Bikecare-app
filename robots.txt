@@ -1,0 +1,5 @@
+
+User-agent: *
+Allow: /
+
+Sitemap: https://lachko44.github.io/Bikecare-app/sitemap.xml
