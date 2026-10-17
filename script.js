@@ -18,9 +18,14 @@ const CONFIGURED =
   SUPABASE_URL.includes(".supabase.co") &&
   SUPABASE_PUBLISHABLE_KEY.startsWith("sb_publishable_");
 
-const supabase = CONFIGURED
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
-  : null;
+// Важно: използваме supabaseClient, а не supabase.
+const supabaseClient =
+  CONFIGURED && window.supabase?.createClient
+    ? window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_PUBLISHABLE_KEY
+      )
+    : null;
 
 let session = null;
 let data = blankData();
@@ -29,6 +34,7 @@ let saveTimer = null;
 let saveVersion = 0;
 let installEvent = null;
 let authBusy = false;
+let authListenerRegistered = false;
 
 /* =========================
    DATA
@@ -150,19 +156,20 @@ function bikeName() {
    ========================= */
 
 async function saveCloud() {
-  if (!session || !supabase || saving) return;
+  if (!session || !supabaseClient || saving) return;
 
   saving = true;
   const versionBeingSaved = saveVersion;
+  const userIdBeingSaved = session.user.id;
   const snapshot = JSON.parse(JSON.stringify(data));
 
   setStatus("Запазване в облака...");
 
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("bikecare_data")
       .upsert({
-        user_id: session.user.id,
+        user_id: userIdBeingSaved,
         bike: snapshot.bike,
         parts: snapshot.parts,
         tasks: snapshot.tasks,
@@ -174,17 +181,29 @@ async function saveCloud() {
 
     if (error) throw error;
 
-    if (versionBeingSaved === saveVersion) {
+    if (
+      session?.user?.id === userIdBeingSaved &&
+      versionBeingSaved === saveVersion
+    ) {
       setStatus("✓ Запазено в облака");
     }
   } catch (error) {
     console.error("BikeCare cloud save:", error);
-    setStatus("Грешка при облачното запазване");
-    message("Данните са запазени локално, но не и в облака.");
+
+    if (session?.user?.id === userIdBeingSaved) {
+      setStatus("Грешка при облачното запазване");
+      message("Данните са запазени локално, но не и в облака.");
+    }
   } finally {
     saving = false;
 
-    if (versionBeingSaved !== saveVersion && session) {
+    if (
+      session &&
+      (
+        versionBeingSaved !== saveVersion ||
+        session.user.id !== userIdBeingSaved
+      )
+    ) {
       scheduleCloudSave();
     }
   }
@@ -218,15 +237,20 @@ function save() {
 }
 
 async function loadCloud() {
-  if (!session || !supabase) return;
+  if (!session || !supabaseClient) return;
+
+  const userIdBeingLoaded = session.user.id;
 
   setStatus("Зареждане от облака...");
 
-  const { data: row, error } = await supabase
+  const { data: row, error } = await supabaseClient
     .from("bikecare_data")
     .select("bike, parts, tasks, rides")
-    .eq("user_id", session.user.id)
+    .eq("user_id", userIdBeingLoaded)
     .maybeSingle();
+
+  // Не прилагаме резултат, ако междувременно потребителят се е сменил.
+  if (session?.user?.id !== userIdBeingLoaded) return;
 
   if (error) {
     console.error("BikeCare cloud load:", error);
@@ -237,12 +261,22 @@ async function loadCloud() {
 
   if (row) {
     data = normalizeData(row);
-    localStorage.setItem(KEY, JSON.stringify(data));
   } else {
-    // Запазва съществуващите локални данни при първия вход.
-    data = loadLocal();
+    // Нов профил: започва с празни данни.
+    // Не копираме локални данни, които може да са на друг потребител.
+    data = blankData();
+
     saveVersion++;
     await saveCloud();
+  }
+
+  // Записваме локално само данните на текущия профил.
+  if (session?.user?.id !== userIdBeingLoaded) return;
+
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data));
+  } catch (error) {
+    console.error("BikeCare local save:", error);
   }
 
   renderAll();
@@ -294,16 +328,25 @@ function setAuthBusy(busy) {
 }
 
 function setupAuth() {
-  if (!CONFIGURED || !supabase) {
+  if (!supabaseClient) {
     showAuth(true);
     setAuthStatus(
-      "Първо попълни SUPABASE_URL и SUPABASE_PUBLISHABLE_KEY в началото на script.js."
+      "Supabase не се зареди. Провери интернет връзката и настройките."
     );
     setStatus("Нужни са настройки на Supabase");
     return;
   }
 
-  $("#auth-form").addEventListener("submit", async event => {
+  const authForm = $("#auth-form");
+  const registerButton = $("#register-button");
+  const logoutButton = $("#logout-button");
+
+  if (!authForm || !registerButton || !logoutButton) {
+    console.error("BikeCare: липсват елементи за удостоверяване в index.html.");
+    return;
+  }
+
+  authForm.addEventListener("submit", async event => {
     event.preventDefault();
 
     if (authBusy) return;
@@ -321,7 +364,7 @@ function setupAuth() {
     setAuthStatus("Влизане...");
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
       });
@@ -330,13 +373,14 @@ function setupAuth() {
 
       setAuthStatus("Влизането е успешно.");
     } catch (error) {
+      console.error("BikeCare login:", error);
       setAuthStatus(error.message || "Неуспешен вход.");
     } finally {
       setAuthBusy(false);
     }
   });
 
-  $("#register-button").addEventListener("click", async () => {
+  registerButton.addEventListener("click", async () => {
     if (authBusy) return;
 
     const form = $("#auth-form");
@@ -353,7 +397,7 @@ function setupAuth() {
     setAuthStatus("Създаване на профил...");
 
     try {
-      const { data: result, error } = await supabase.auth.signUp({
+      const { data: result, error } = await supabaseClient.auth.signUp({
         email,
         password
       });
@@ -368,20 +412,22 @@ function setupAuth() {
         );
       }
     } catch (error) {
+      console.error("BikeCare registration:", error);
       setAuthStatus(error.message || "Неуспешна регистрация.");
     } finally {
       setAuthBusy(false);
     }
   });
 
-  $("#logout-button").addEventListener("click", async () => {
+  logoutButton.addEventListener("click", async () => {
     if (!confirm("Сигурен ли си, че искаш да излезеш от профила?")) {
       return;
     }
 
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
+      console.error("BikeCare logout:", error);
       message("Неуспешен изход.");
       return;
     }
@@ -393,21 +439,44 @@ function setupAuth() {
 async function applySession(nextSession) {
   clearTimeout(saveTimer);
 
+  const previousUserId = session?.user?.id || null;
+  const nextUserId = nextSession?.user?.id || null;
+
   session = nextSession;
 
   if (!session) {
     data = blankData();
+
+    const emailEl = $("#account-email");
+    if (emailEl) emailEl.textContent = "";
+
+    const logoutButton = $("#logout-button");
+    if (logoutButton) logoutButton.hidden = true;
+
     showAuth(true);
     setStatus("Не си влязъл");
     return;
   }
 
-  $("#account-email").textContent = session.user.email || "Влязъл потребител";
-  $("#logout-button").hidden = false;
+  const emailEl = $("#account-email");
+  if (emailEl) {
+    emailEl.textContent = session.user.email || "Влязъл потребител";
+  }
+
+  const logoutButton = $("#logout-button");
+  if (logoutButton) logoutButton.hidden = false;
+
+  // При смяна на профил не показваме данните на предишния потребител.
+  if (previousUserId !== nextUserId) {
+    data = blankData();
+    fillBikeForm();
+    renderAll();
+  }
 
   showAuth(false);
 
   const currentPage = location.hash.slice(1);
+
   showPage(
     ["home", "bike", "parts", "maintenance", "rides", "backup"].includes(currentPage)
       ? currentPage
@@ -847,7 +916,9 @@ function setupApp() {
   window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
     installEvent = event;
-    $("#install-button").hidden = false;
+
+    const installButton = $("#install-button");
+    if (installButton) installButton.hidden = false;
   });
 
   $("#install-button").addEventListener("click", async () => {
@@ -859,7 +930,9 @@ function setupApp() {
     installEvent.prompt();
     await installEvent.userChoice;
     installEvent = null;
-    $("#install-button").hidden = true;
+
+    const installButton = $("#install-button");
+    if (installButton) installButton.hidden = true;
   });
 }
 
@@ -876,17 +949,22 @@ async function init() {
   setupApp();
   setupAuth();
 
+  // Зареждаме локалните данни само за началното визуализиране.
+  // След вход loadCloud зарежда данните на съответния потребител.
   data = loadLocal();
   fillBikeForm();
   renderAll();
 
-  if (!CONFIGURED || !supabase) {
+  if (!supabaseClient) {
     showAuth(true);
+    setAuthStatus(
+      "Supabase не се зареди. Провери интернет връзката и настройките."
+    );
     return;
   }
 
   try {
-    const { data: result, error } = await supabase.auth.getSession();
+    const { data: result, error } = await supabaseClient.auth.getSession();
 
     if (error) throw error;
 
@@ -894,17 +972,22 @@ async function init() {
   } catch (error) {
     console.error("BikeCare authentication:", error);
     showAuth(true);
-    setAuthStatus("Не успях да се свържа със Supabase. Провери настройките и връзката.");
+    setAuthStatus(
+      "Не успях да се свържа със Supabase. Провери настройките и връзката."
+    );
   }
 
-  supabase.auth.onAuthStateChange((_event, nextSession) => {
-    // Изпълнява се след приключване на текущия callback.
-    setTimeout(() => {
-      if (nextSession?.user?.id !== session?.user?.id) {
-        applySession(nextSession);
-      }
-    }, 0);
-  });
+  if (!authListenerRegistered) {
+    authListenerRegistered = true;
+
+    supabaseClient.auth.onAuthStateChange((_event, nextSession) => {
+      setTimeout(() => {
+        if (nextSession?.user?.id !== session?.user?.id) {
+          applySession(nextSession);
+        }
+      }, 0);
+    });
+  }
 }
 
 if (document.readyState === "loading") {
